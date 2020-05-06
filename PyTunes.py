@@ -33,7 +33,7 @@ def select_by_speech():
 
 def listen_command():
     t2i_en = {'play':0, 'next':1, 'stop':2, 'search':3,'exit':8, 'up':4, 'down':5, 'yes':6, 'no':7}
-    t2i_vn = {'phát':0, 'tiếp':1, 'dừng':2, 'tìm':3,'thoát':8, 'âm':4, 'âm':5 , 'có':6, 'không':7}
+    t2i_vn = {'phát':0, 'bài tiếp theo':1, 'dừng lại':2, 'tìm kiếm':3,'thoát':8, 'tăng âm lượng':4, 'giảm âm lượng':5 , 'có':6, 'không':7}
     match = False
     while match != True:
         t2s('speech command')
@@ -45,15 +45,29 @@ def listen_command():
             else:
                 command = t2i_vn[text]
                 match = True
-                
     return int(command)
+
+def getVoiceKeyWord():
+    #t2s('')
+    match = False
+    # key = ''
+    while match!= True:
+        key = recognize('keyword')
+        t2s('you are want to find: {}'.format(key))
+        cf = recognize('yes or no')
+        if cf in ['yes','ok','oke','đúng','phải','đồng ý']:
+            t2s('ok')
+            match = True
+        else:
+            t2s('oh sorry! please speech keyword again')
+    return key
         
 def getLinkAudio(link):
-    print('start get link')
+    print('start get audio')
     video = pafy.new(link)
     best = video.getbestaudio()
     url = best.url
-    print('done get link')
+    print('done get audio')
     return url
 
 class App(QMainWindow):
@@ -65,7 +79,7 @@ class App(QMainWindow):
         #self.media = instance.media_new(playurl)
         #self.mediaplayer.set_media(self.media)
         
-        self.title = 'SAMPlayer'
+        self.title = 'Player'
         self.left = 500
         self.top = 200
         self.width = 600
@@ -154,6 +168,7 @@ class App(QMainWindow):
         else:
             self.mediaplayer.play()
             self.playbutton.setText("Pause")
+            
     def Pause(self):
         if self.mediaplayer.is_playing():
             self.mediaplayer.pause()
@@ -197,11 +212,13 @@ class App(QMainWindow):
         #print(results)
     
     def VoiceSearch(self):
-        print('voicesearch')
+        print('start voice search')
         t2s('Start Voice Search')
         
-        self.status.setText('Speech keyword to search')
-        keyword = recognize()
+        self.status.setText('Speech keyword')
+        keyword = getVoiceKeyWord() # có xác nhận key
+        #t2s('')
+        # keyword = recognize('keyword')# không cần xác nhận
         t2s('search for {}'.format(keyword))
         self.status.setText('Keyword: "{}"'.format(keyword))
         self.searchInput.setText(keyword)
@@ -265,8 +282,11 @@ class App(QMainWindow):
             #self.setVolume()
         elif command == 8:
             print('exited')
-            t2s('exit')
-            exit()
+            t2s('you are sure exit')
+            t2s('yes or no')
+            cf_exit = recognize('yes or no')
+            if cf_exit == 'yes':
+                exit()
             
     def toggleColors(self):
         """ Fusion dark palette from https://gist.github.com/QuantumCD/6245215. Modified by me and J.J. """

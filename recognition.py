@@ -4,17 +4,18 @@ from text2speech import t2s
 
 r = sr.Recognizer()
 
-def recognize():
+def recognize(note=''):
     with sr.Microphone() as source:
         r.adjust_for_ambient_noise(source)
-        t2s('start speech')
+        t2s('start speech ' + note)
+        t2s('start')
         print('start speech')
         # while True:
         audio = r.listen(source)
         t2s('done')
-        print('record done')
+        print('done')
         try:
-            print('infering...')
+            #print('infering...')
             text = r.recognize_google(audio, language='vi-VN').lower()
         except:
             print('error')
