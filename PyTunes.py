@@ -1,8 +1,9 @@
 import sys
 from PyQt5.QtGui import QPalette, QColor
+from PyQt5.QtGui import QKeySequence
 from PyQt5 import QtCore
 from PyQt5.QtCore import QUrl, QDirIterator, Qt
-from PyQt5.QtWidgets import QApplication, QListWidget, QWidget, QMainWindow, QPushButton, QFileDialog, QAction, QHBoxLayout, QVBoxLayout, QSlider, QLineEdit ,QLabel, QListView, QFrame
+from PyQt5.QtWidgets import QApplication, QListWidget, QWidget, QMainWindow, QPushButton, QFileDialog, QAction, QHBoxLayout, QVBoxLayout, QSlider, QLineEdit ,QLabel, QListView, QFrame, QShortcut
 from PyQt5.QtMultimedia import QMediaPlaylist, QMediaPlayer, QMediaContent
 import vlc
 import pafy
@@ -102,7 +103,7 @@ class App(QMainWindow):
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.toggleColors()
         self.show()
-        self.Wellcome()
+        #self.Wellcome()
 
     def addControls(self):
         wid = QWidget(self)
@@ -130,6 +131,8 @@ class App(QMainWindow):
         self.stopbutton = QPushButton('Stop')  # Stop button
         self.nextbutton = QPushButton('Next')  # Next button
         self.command = QPushButton('Start Voice Command')  # Next button
+        self.shortcut = QShortcut(QKeySequence("Space"), self)
+        self.shortcut.activated.connect(self.excCommand)
         # Add button layouts
         mainLayout = QVBoxLayout()
         # search = QHBoxLayout()
