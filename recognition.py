@@ -1,19 +1,20 @@
 import time
 import speech_recognition as sr
 from text2speech import t2s
+from time import sleep
 
 r = sr.Recognizer()
 
 def recognize(note=''):
-    with sr.Microphone() as source:
+    with sr.Microphone(device_index=1) as source:
         r.adjust_for_ambient_noise(source)
         t2s('start speech ' + note)
         t2s('start')
-        print('start speech')
+        #print('start speech')
         # while True:
         audio = r.listen(source)
         t2s('done')
-        print('done')
+        #print('done')
         try:
             #print('infering...')
             text = r.recognize_google(audio, language='vi-VN').lower()
@@ -22,7 +23,6 @@ def recognize(note=''):
             text = 'error'
         print('#speech2text:' + text)
     return text
-            
 
 
 # # this is called from the background thread

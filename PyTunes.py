@@ -10,6 +10,7 @@ from youtube_search import YoutubeSearch
 import json
 from recognition import recognize
 from text2speech import t2s
+from time import sleep
 
 def select_by_speech():
     t2i_en = {'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine':9, 'ten':10 }
@@ -31,9 +32,14 @@ def select_by_speech():
                 match = True
     return int(number) - 1
 
+def waitForSpeech():
+    t2s('I am listing')
+    #print('I am listing')
+
+
 def listen_command():
-    t2i_en = {'play':0, 'next':1, 'stop':2, 'search':3,'exit':8, 'up':4, 'down':5, 'yes':6, 'no':7}
-    t2i_vn = {'phát':0, 'bài tiếp theo':1, 'dừng lại':2, 'tìm kiếm':3,'thoát':8, 'tăng âm lượng':4, 'giảm âm lượng':5 , 'có':6, 'không':7}
+    t2i_en = {'play':0, 'next':1, 'stop':2, 'search':3, 'change skin':4, 'exit':5}
+    t2i_vn = {'phát':0, 'bài tiếp theo':1, 'dừng lại':2, 'tìm kiếm':3, 'đổi giao điện':4, 'thoát':5}
     match = False
     while match != True:
         t2s('speech command')
@@ -48,9 +54,7 @@ def listen_command():
     return int(command)
 
 def getVoiceKeyWord():
-    #t2s('')
     match = False
-    # key = ''
     while match!= True:
         key = recognize('keyword')
         t2s('you are want to find: {}'.format(key))
@@ -76,8 +80,6 @@ class App(QMainWindow):
         
         self.instance = vlc.Instance()
         self.mediaplayer = self.instance.media_player_new()
-        #self.media = instance.media_new(playurl)
-        #self.mediaplayer.set_media(self.media)
         
         self.title = 'Player'
         self.left = 500
@@ -100,6 +102,7 @@ class App(QMainWindow):
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.toggleColors()
         self.show()
+        self.Wellcome()
 
     def addControls(self):
         wid = QWidget(self)
@@ -206,13 +209,16 @@ class App(QMainWindow):
             self.idx_audio = select_by_speech()
             self.selectAndPlaySongByIndex()
         else:
-            print('enter keyword to search!!!')
             self.status.setText('Enter keyword or voice search')
             t2s('enter keyword or voice search')
-        #print(results)
-    
+
+    def Wellcome(self):
+        sleep(1)
+        t2s('Hello! Wellcome to music player')
+        t2s('Let search a song!')
+        self.VoiceSearch()
+
     def VoiceSearch(self):
-        print('start voice search')
         t2s('Start Voice Search')
         
         self.status.setText('Speech keyword')
@@ -227,14 +233,11 @@ class App(QMainWindow):
         
         
     def selectAndPlaySongByIndex(self):
-        #print(self.idx_audio)
         title_audio = list(self.listAudio_text.keys())[self.idx_audio]
         link_audio = list(self.listAudio_text.values())[self.idx_audio]
-        #self.cur_title = title_audio
         link_audio = getLinkAudio(link_audio)
         
         t2s('Start play: {}, {}'.format(self.idx_audio+1, title_audio))
-        print('Start play: {}, {}'.format(self.idx_audio+1, title_audio))
 
         self.setMediaPlayerUrl(link_audio)
         self.PlayPause()
@@ -250,13 +253,14 @@ class App(QMainWindow):
     
     def VoiceNext(self):
         print('Next song')
-        t2s('Next song')
         self.Next()
-        
+
+    #def excCommandDone(self):
+
     def excCommand(self):
         self.Pause()
-        t2s('Speech command')
-        print('Speech command')
+        t2s('OK. I am listing')
+        t2s('Please speech a command')
         command = listen_command()
         if command == 0:
             self.PlayPause()
@@ -267,29 +271,16 @@ class App(QMainWindow):
         elif command == 3:
             self.VoiceSearch()
         elif command == 4:
-            old_vl =  self.volumeslider.setValue(self.mediaplayer.audio_get_volume())
-            if old_vl == 100:
-                self.volumeslider.setValue(old_vl)
-            else:
-                self.volumeslider.setValue(old_vl + 10)
-            #self.setVolume()
+            self.toggleColors()
+            self.PlayPause()
         elif command == 5:
-            old_vl =  self.volumeslider.setValue(self.mediaplayer.audio_get_volume())
-            if old_vl == 0:
-                self.volumeslider.setValue(old_vl)
-            else:
-                self.volumeslider.setValue(old_vl - 10)
-            #self.setVolume()
-        elif command == 8:
-            print('exited')
-            t2s('you are sure exit')
-            t2s('yes or no')
+            t2s('You are sure to exit!')
+            t2s('Speech Yes to comfirm!')
             cf_exit = recognize('yes or no')
-            if cf_exit == 'yes':
+            if cf_exit == 'yes' or cf_exit == 'ok' or cf_exit =='oke':
                 exit()
             
     def toggleColors(self):
-        """ Fusion dark palette from https://gist.github.com/QuantumCD/6245215. Modified by me and J.J. """
         app.setStyle("Fusion")
         palette = QPalette()
         if self.color == 0:
