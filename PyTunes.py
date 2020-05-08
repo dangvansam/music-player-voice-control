@@ -15,21 +15,29 @@ from time import sleep
 
 def select_by_speech():
     t2i_en = {'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine':9, 'ten':10 }
+    t2i_en2 = {'number one': 1, 'number two': 2, 'number three': 3, 'number four': 4, 'number five': 5, 'number six': 6, 'number seven': 7, 'number eight': 8, 'number nine':9, 'number ten':10 }
     t2i_vn = {'một': 1, 'hai': 2, 'ba': 3, 'bốn': 4, 'năm': 5, 'sáu': 6, 'bẩy': 7, 'tám': 8, 'chín':9, 'mười':10 }
-    t2i_vn2 = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9':9, '10':10 }
+    t2i_vn2 = {'số 1': 1, 'số 2': 2, 'số 3': 3, 'số 4': 4, 'số 5': 5, 'số 6': 6, 'số 7': 7, 'số 8': 8, 'số 9':9, 'số 10':10 }
+    t2i = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9':9, '10':10 }
     match = False
     while match != True:
         t2s('select song')
         text = recognize()
-        if text in t2i_en.keys() or text in t2i_vn.keys() or t2i_vn2.keys():
+        if text in t2i_en.keys() or text in t2i_en2.keys() or text in t2i_vn.keys() or t2i_vn2.keys() or text in t2i.keys():
             if text in t2i_en.keys():
                 number = t2i_en[text]
+                match = True
+            elif text in t2i_en2.keys():
+                number = t2i_en2[text]
                 match = True
             elif text in t2i_vn.keys():
                 number = t2i_vn[text]
                 match = True
             elif text in t2i_vn2.keys():
                 number = t2i_vn2[text]
+                match = True
+            elif text in t2i.keys():
+                number = t2i[text]
                 match = True
     return int(number) - 1
 
@@ -40,16 +48,16 @@ def waitForSpeech():
 
 def listen_command():
     t2i_en = {'play':0, 'next':1, 'stop':2, 'search':3, 'change skin':4, 'exit':5}
-    t2i_vn = {'phát':0, 'bài tiếp theo':1, 'dừng lại':2, 'tìm kiếm':3, 'đổi giao điện':4, 'thoát':5}
+    t2i_vn = {'phát':0, 'tiếp theo':1, 'dừng lại':2, 'tìm kiếm':3, 'đổi giao diện':4, 'thoát':5}
     match = False
     while match != True:
         t2s('speech command')
         text = recognize()
-        if text in t2i_en or text in t2i_vn:
-            if text in t2i_en:
+        if text in t2i_en.keys() or text in t2i_vn.keys():
+            if text in t2i_en.keys():
                 command = t2i_en[text]
                 match = True
-            else:
+            elif text in t2i_vn.keys():
                 command = t2i_vn[text]
                 match = True
     return int(command)
@@ -59,7 +67,7 @@ def getVoiceKeyWord():
     while match!= True:
         key = recognize('keyword')
         t2s('you are want to find: {}'.format(key))
-        cf = recognize('yes or no')
+        cf = recognize('YES or OK to confirm and NO to try again')
         if cf in ['yes','ok','oke','đúng','phải','đồng ý']:
             t2s('ok')
             match = True
@@ -103,7 +111,7 @@ class App(QMainWindow):
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.toggleColors()
         self.show()
-        #self.Wellcome()
+        self.Wellcome()
 
     def addControls(self):
         wid = QWidget(self)
@@ -216,7 +224,7 @@ class App(QMainWindow):
             t2s('enter keyword or voice search')
 
     def Wellcome(self):
-        sleep(1)
+        #sleep(1)
         t2s('Hello! Wellcome to music player')
         t2s('Let search a song!')
         self.VoiceSearch()
@@ -262,7 +270,7 @@ class App(QMainWindow):
 
     def excCommand(self):
         self.Pause()
-        t2s('OK. I am listing')
+        t2s('OK. Im here')
         t2s('Please speech a command')
         command = listen_command()
         if command == 0:
@@ -275,13 +283,16 @@ class App(QMainWindow):
             self.VoiceSearch()
         elif command == 4:
             self.toggleColors()
+            t2s('Change skin ok!')
             self.PlayPause()
         elif command == 5:
             t2s('You are sure to exit!')
-            t2s('Speech Yes to comfirm!')
-            cf_exit = recognize('yes or no')
+            t2s('Speech Yes or OK to comfirm!')
+            cf_exit = recognize('')
             if cf_exit == 'yes' or cf_exit == 'ok' or cf_exit =='oke':
                 exit()
+            else:
+                print('no exit')
             
     def toggleColors(self):
         app.setStyle("Fusion")

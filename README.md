@@ -11,6 +11,6 @@ pip install python-vlc pafy SpeechRecognition youtube-search
 chạy chương trình:   
 python PyTunes.py  
   
-nhấn voice search sau khi nghe thấy "start speech" thì nói từ khóa pm sẽ báo "done" là kết thúc ghi âm bắt đầu nhận dạng
-sau mỗi lệnh khi nào nó nói "start speech" mới bắt đầu đọc lệnh vì hơi delay một chút.
-ấn nút "Speech Command" để ra một lệnh: "play", "seach", "tìm", "next", "tiếp", "stop". Phần mềm chỉ nhận đúng từ khóa nếu nhận dạng đúng, nếu nói sai thì phải nói lại cho đến khi đúng với lệnh
+nhấn voice search sau khi nghe thấy "start" thì nói từ khóa pm sẽ báo "done" là kết thúc ghi âm bắt đầu nhận dạng
+sau mỗi lệnh khi nào nó nói "start" mới bắt đầu đọc lệnh vì hơi delay một chút.
+Khi đang play ấn phím "SPACE" (phím tắt của nút "Voice Speech Command") để ra lệnh: "play", "search", "tìm kiếm", "next", "tiếp theo", "stop", "dừng lại","thay đổi giao diện", "change skin", "thoát", "exit"

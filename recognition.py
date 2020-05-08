@@ -9,17 +9,17 @@ def recognize(note=''):
     with sr.Microphone(device_index=1) as source:
         r.adjust_for_ambient_noise(source)
         t2s('start speech ' + note)
-        t2s('start')
+        t2s('START')
         #print('start speech')
         # while True:
-        audio = r.listen(source)
-        t2s('done')
+        audio = r.listen(source, timeout=4)
+        t2s('DONE')
         #print('done')
         try:
             #print('infering...')
             text = r.recognize_google(audio, language='vi-VN').lower()
         except:
-            print('error')
+            print('speech recognition error')
             text = 'error'
         print('#speech2text:' + text)
     return text
