@@ -48,8 +48,10 @@ def waitForSpeech():
 
 
 def listen_command():
+
     t2i_en = {'play':0, 'next':1, 'stop':2, 'search':3, 'select song':4, 'exit':5}
     t2i_vn = {'phát':0, 'tiếp tục':0, 'tiếp theo':1, 'kế tiếp':1, 'dừng lại':2, 'tìm kiếm':3, 'chọn bài hát':4, 'chọn bài':4, 'thoát':5, 'thoát chương trình':5}
+    
     match = False
     while match != True:
         t2s('speech command')
