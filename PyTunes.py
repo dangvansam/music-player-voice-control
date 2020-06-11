@@ -12,6 +12,7 @@ import json
 from recognition import recognize
 from text2speech import t2s
 from time import sleep
+from next_keyword import next_keyword
 
 def select_by_speech():
     t2i_en = {'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine':9, 'ten':10 }
@@ -47,8 +48,8 @@ def waitForSpeech():
 
 
 def listen_command():
-    t2i_en = {'play':0, 'next':1, 'stop':2, 'search':3, 'change skin':4, 'exit':5}
-    t2i_vn = {'phát':0, 'tiếp theo':1, 'dừng lại':2, 'tìm kiếm':3, 'đổi giao diện':4, 'thoát':5}
+    t2i_en = {'play':0, 'next':1, 'stop':2, 'search':3, 'select song':4, 'exit':5}
+    t2i_vn = {'phát':0, 'tiếp tục':0, 'tiếp theo':1, 'kế tiếp':1, 'dừng lại':2, 'tìm kiếm':3, 'chọn bài hát':4, 'chọn bài':4, 'thoát':5, 'thoát chương trình':5}
     match = False
     while match != True:
         t2s('speech command')
@@ -86,7 +87,7 @@ def getLinkAudio(link):
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        
+
         self.instance = vlc.Instance()
         self.mediaplayer = self.instance.media_player_new()
         
@@ -100,18 +101,18 @@ class App(QMainWindow):
 
     def initUI(self):
 
-        menubar = self.menuBar()
-        windowmenu = menubar.addMenu('Theme')
-        themeAct = QAction('Toggle light/dark theme', self)
-        themeAct.setShortcut('Ctrl+T')
-        windowmenu.addAction(themeAct)
-        themeAct.triggered.connect(self.toggleColors)
+        #menubar = self.menuBar()
+        #windowmenu = menubar.addMenu('Theme')
+        #themeAct = QAction('Toggle light/dark theme', self)
+        #themeAct.setShortcut('Ctrl+T')
+        #windowmenu.addAction(themeAct)
+        #themeAct.triggered.connect(self.toggleColors)
         self.addControls()
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.toggleColors()
         self.show()
-        self.Wellcome()
+        #self.Wellcome()
 
     def addControls(self):
         wid = QWidget(self)
@@ -119,12 +120,17 @@ class App(QMainWindow):
         # Status
         self.status = QLabel()
         self.status.setAlignment(QtCore.Qt.AlignCenter)
-        self.status.setText('Status')
+        self.status.setStyleSheet('color: #1DB954')
+        self.status.setText('Xin chào')
         # Search
         self.searchInput = QLineEdit()
-        self.searchBtn = QPushButton('Search')
-        self.voicesearchBtn = QPushButton('Voice Search')
+        self.searchInput.setFixedHeight(30)
+        self.searchBtn = QPushButton('Tìm kiếm')
+        self.searchBtn.setFixedHeight(30)
         self.searchBtn.clicked.connect(self.Search)
+
+        self.voicesearchBtn = QPushButton('Tìm bằng giọng nói')
+        self.voicesearchBtn.setFixedHeight(30)
         self.voicesearchBtn.clicked.connect(self.VoiceSearch)
         #self.listSong = QListView()
         self.listAudio = QListWidget()
@@ -132,13 +138,20 @@ class App(QMainWindow):
         self.volumeslider = QSlider(Qt.Horizontal, self)
         self.volumeslider.setMaximum(100)
         self.volumeslider.setValue(self.mediaplayer.audio_get_volume())
-        self.volumeslider.setToolTip("Volume")
+        self.volumeslider.setToolTip("Âm lượng")
         # self.volumeslabel = QLabel(alignment=QtCore.Qt.AlignCenter)
         
-        self.playbutton = QPushButton('Play')  # play button
-        self.stopbutton = QPushButton('Stop')  # Stop button
-        self.nextbutton = QPushButton('Next')  # Next button
-        self.command = QPushButton('Start Voice Command')  # Next button
+        self.playbutton = QPushButton('Phát/Tạm dừng')  # play button
+        self.playbutton.setFixedHeight(30)
+        self.stopbutton = QPushButton('Dừng')  # Stop button
+        self.stopbutton.setFixedHeight(30)
+        self.nextbutton = QPushButton('Tiếp theo')  # Next button
+        self.nextbutton.setFixedHeight(30)
+        self.nextbutton2 = QPushButton('Tiếp theo(random)')  # Next button
+        self.nextbutton2.setFixedHeight(30)
+        self.command = QPushButton('Ra lệnh bằng giọng nói')  # Next button
+        self.command.setFixedHeight(30)
+
         self.shortcut = QShortcut(QKeySequence("Space"), self)
         self.shortcut.activated.connect(self.excCommand)
         # Add button layouts
@@ -150,8 +163,9 @@ class App(QMainWindow):
         # search.addWidget(voicesearchBtn)
         # Add buttons to song controls layout
         controls.addWidget(self.playbutton)
-        controls.addWidget(self.stopbutton)
         controls.addWidget(self.nextbutton)
+        controls.addWidget(self.stopbutton)
+        controls.addWidget(self.nextbutton2)
         # Add to vertical layout
         mainLayout.addWidget(self.status)
         mainLayout.addWidget(self.searchInput)
@@ -167,6 +181,7 @@ class App(QMainWindow):
         self.playbutton.clicked.connect(self.PlayPause)
         self.stopbutton.clicked.connect(self.Stop)
         self.nextbutton.clicked.connect(self.Next)
+        self.nextbutton2.clicked.connect(self.nextRecommend)
         self.command.clicked.connect(self.excCommand)
         self.volumeslider.valueChanged.connect(self.setVolume)
         # self.volumeslider.valueChanged.connect(self.volumeslabel.setNum)
@@ -178,49 +193,68 @@ class App(QMainWindow):
     def PlayPause(self):
         if self.mediaplayer.is_playing():
             self.mediaplayer.pause()
-            self.playbutton.setText("Play")
+            self.playbutton.setText("Phát")
         else:
             self.mediaplayer.play()
-            self.playbutton.setText("Pause")
+            self.playbutton.setText("Tạm dừng")
             
     def Pause(self):
         if self.mediaplayer.is_playing():
             self.mediaplayer.pause()
-            self.playbutton.setText("Play")
+            self.playbutton.setText("Phát")
 
     def Stop(self):
         self.mediaplayer.stop()
-        self.playbutton.setText("Play")
+        self.playbutton.setText("Phát")
     
     def setMediaPlayerUrl(self, url):
         self.media = self.instance.media_new(url)
         self.mediaplayer.set_media(self.media)
-        
-    def Search(self):
+
+    def generateRandomList(self):
+        list_title = ["nhạc hay", "nhạc mới", "nhạc trẻ hot", "nhac viet", "top hit", "best song"]
+        next_key = next_keyword(list_title)
+        self.status.setText('Tìm kiếm cho: "{}"'.format(next_key))
+        self.searchInput.setText(next_key)
+        self.Search(get_idx_by_user=False)
+
+    def Search(self, get_idx_by_user=False):
+        self.Pause()
         self.listAudio.clear()
-        #del self.listAudio_text
         if self.searchInput.text() != '':
             print('keyword:', self.searchInput.text())
             print('searching...')
-            #self.status.setText('search: {}'.format(self.searchInput.text()))
-            #self.status.setText('Searching...')
             results = YoutubeSearch(self.searchInput.text(), max_results=10).to_json()
             results = json.loads(results)
             results = results["videos"]
-            # self.idx_audio = 0
-            self.listAudio_text = {}
-            for i, item in enumerate(results):
-                itemtitle = item['title']
-                itemlink = 'https://www.youtube.com' + item['link']
-                self.listAudio.insertItem(i+1, str(i+1) + ': ' + itemtitle + '#link#' + itemlink)
-                self.listAudio_text[itemtitle] = itemlink
-                self.status.setText('Result for: "{}"'.format(self.searchInput.text()))
             
-            t2s('seach done, select song to play')
-            self.idx_audio = select_by_speech()
-            self.selectAndPlaySongByIndex()
+            if len(results) == 0:
+                self.status.setText('Không có kết quả hoặc lỗi')
+                t2s('try again')
+                #self.searchInput.setText('')
+            else:
+                self.listAudio_text = {}
+                self.list_title = [e["title"] for e in results]
+                print(results)
+                for i, item in enumerate(results):
+                    itemtitle = item['title']
+                    itemlink = 'https://www.youtube.com' + item['link']
+                    self.listAudio.insertItem(i+1, str(i+1) + ': ' + itemtitle + '#link#' + itemlink)
+                    self.listAudio_text[itemtitle] = itemlink
+                    self.status.setText('Kết quả cho: "{}"'.format(self.searchInput.text()))
+                
+                #self.searchInput.setText('')
+                t2s('seach done')
+                if get_idx_by_user:
+                    #sau khi search, cho người dùng chọn bài hát bằng voice
+                    self.idx_audio = select_by_speech()
+                else:
+                    #cho chế độ tự động phát ramdom. phát bài đầu tiên trong list. không cần chọn bằng voice
+                    self.idx_audio = 0
+                sleep(1)
+                self.selectAndPlaySongByIndex()
         else:
-            self.status.setText('Enter keyword or voice search')
+            self.status.setText('Nhập từ khóa hoặc tìm bằng giọng nói')
             t2s('enter keyword or voice search')
 
     def Wellcome(self):
@@ -230,29 +264,29 @@ class App(QMainWindow):
         self.VoiceSearch()
 
     def VoiceSearch(self):
+        self.Pause()
         t2s('Start Voice Search')
         
-        self.status.setText('Speech keyword')
+        self.status.setText('Nói từ khóa')
         keyword = getVoiceKeyWord() # có xác nhận key
         #t2s('')
         # keyword = recognize('keyword')# không cần xác nhận
         t2s('search for {}'.format(keyword))
-        self.status.setText('Keyword: "{}"'.format(keyword))
+        self.status.setText('Tìm kiếm cho: "{}"'.format(keyword))
         self.searchInput.setText(keyword)
         self.Search()
         # self.selectAndPlaySongByIndex()
-        
         
     def selectAndPlaySongByIndex(self):
         title_audio = list(self.listAudio_text.keys())[self.idx_audio]
         link_audio = list(self.listAudio_text.values())[self.idx_audio]
         link_audio = getLinkAudio(link_audio)
         
-        t2s('Start play: {}, {}'.format(self.idx_audio+1, title_audio))
+        t2s('Start play: {}'.format(self.idx_audio+1))
 
         self.setMediaPlayerUrl(link_audio)
         self.PlayPause()
-        self.status.setText('Playing: {}'.format(title_audio))
+        self.status.setText('Đang phát: {}'.format(title_audio))
         
     def Next(self):
         self.Pause()
@@ -262,11 +296,20 @@ class App(QMainWindow):
             self.idx_audio += 1
         self.selectAndPlaySongByIndex()
     
-    def VoiceNext(self):
+    def nextRecommend(self):
+        self.Pause()
+        next_key = next_keyword(self.list_title)
+        self.status.setText('Tìm kiếm cho: "{}"'.format(next_key))
+        self.searchInput.setText(next_key)
+        self.Search(get_idx_by_user=False)
+    
+    def voiceNext(self):
         print('Next song')
         self.Next()
 
-    #def excCommandDone(self):
+    def voiceSelect(self):
+        self.idx_audio = select_by_speech()
+        self.selectAndPlaySongByIndex()
 
     def excCommand(self):
         self.Pause()
@@ -276,15 +319,13 @@ class App(QMainWindow):
         if command == 0:
             self.PlayPause()
         elif command == 1:
-            self.VoiceNext()
+            self.voiceNext()
         elif command == 2:
             self.Stop()
         elif command == 3:
             self.VoiceSearch()
         elif command == 4:
-            self.toggleColors()
-            t2s('Change skin ok!')
-            self.PlayPause()
+            self.voiceSelect()
         elif command == 5:
             t2s('You are sure to exit!')
             t2s('Speech Yes or OK to comfirm!')
@@ -297,41 +338,25 @@ class App(QMainWindow):
     def toggleColors(self):
         app.setStyle("Fusion")
         palette = QPalette()
-        if self.color == 0:
-            palette.setColor(QPalette.Window, QColor(53, 53, 53))
-            palette.setColor(QPalette.WindowText, Qt.white)
-            palette.setColor(QPalette.Base, QColor(25, 25, 25))
-            palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
-            palette.setColor(QPalette.ToolTipBase, Qt.white)
-            palette.setColor(QPalette.ToolTipText, Qt.white)
-            palette.setColor(QPalette.Text, Qt.white)
-            palette.setColor(QPalette.Button, QColor(53, 53, 53))
-            palette.setColor(QPalette.ButtonText, Qt.white)
-            palette.setColor(QPalette.BrightText, Qt.red)
-            palette.setColor(QPalette.Link, QColor(235, 101, 54))
-            palette.setColor(QPalette.Highlight, QColor(235, 101, 54))
-            palette.setColor(QPalette.HighlightedText, Qt.black)
-            app.setPalette(palette)
-            self.color = 1
-        elif self.color == 1:
-            palette.setColor(QPalette.Window, Qt.white)
-            palette.setColor(QPalette.WindowText, Qt.black)
-            palette.setColor(QPalette.Base, QColor(240, 240, 240))
-            palette.setColor(QPalette.AlternateBase, Qt.white)
-            palette.setColor(QPalette.ToolTipBase, Qt.white)
-            palette.setColor(QPalette.ToolTipText, Qt.white)
-            palette.setColor(QPalette.Text, Qt.black)
-            palette.setColor(QPalette.Button, Qt.white)
-            palette.setColor(QPalette.ButtonText, Qt.black)
-            palette.setColor(QPalette.BrightText, Qt.red)
-            palette.setColor(QPalette.Link, QColor(66, 155, 248))
-            palette.setColor(QPalette.Highlight, QColor(66, 155, 248))
-            palette.setColor(QPalette.HighlightedText, Qt.black)
-            app.setPalette(palette)
-            self.color = 0
-
+        palette.setColor(QPalette.Window, QColor(41, 41, 41))
+        palette.setColor(QPalette.WindowText, Qt.white)
+        palette.setColor(QPalette.Base, QColor(41, 41, 41))
+        palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+        palette.setColor(QPalette.ToolTipBase, Qt.white)
+        palette.setColor(QPalette.ToolTipText, Qt.white)
+        palette.setColor(QPalette.Text, Qt.white)
+        palette.setColor(QPalette.Button, QColor(29, 185, 84))
+        palette.setColor(QPalette.ButtonText, Qt.white)
+        palette.setColor(QPalette.BrightText, Qt.red)
+        palette.setColor(QPalette.Link, QColor(235, 101, 54))
+        palette.setColor(QPalette.Highlight, Qt.white)
+        palette.setColor(QPalette.HighlightedText,  QColor(29, 185, 84))
+        app.setPalette(palette)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    # load and set stylesheet
+    with open('style.css', "r") as fh:
+        app.setStyleSheet(fh.read())
     ex = App()
     sys.exit(app.exec_())

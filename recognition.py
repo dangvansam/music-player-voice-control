@@ -6,13 +6,13 @@ from time import sleep
 r = sr.Recognizer()
 
 def recognize(note=''):
-    with sr.Microphone(device_index=1) as source:
+    with sr.Microphone() as source:
         r.adjust_for_ambient_noise(source)
         t2s('start speech ' + note)
         t2s('START')
         #print('start speech')
         # while True:
-        audio = r.listen(source, timeout=4)
+        audio = r.listen(source)
         t2s('DONE')
         #print('done')
         try:
